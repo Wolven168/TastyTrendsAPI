@@ -53,10 +53,15 @@ class testApi extends Controller
         // Miscellaneous functions
         $sHashed = Hash::make($request->password); # Creates a hashed version of the password
         $sUser_id = $request->username . '_' . $this->RSG(32);
+        $check_id = Test::where('user_id', $sUser_id)->first();
+        if($check_id) {
+            $sUser_id = $request->username . '_' . $this->RSG(32);
+            $check_id = Test::where('user_id', $sUser_id)->first();
+        }
 
-        $test = Test::where('email', $request->email)->first(); // Checks if provided email is already in database
+        $target = Test::where('email', $request->email)->first(); // Checks if provided email is already in database
         
-        if(!$test) {
+        if(!$target) {
             // Creating the Test to add to the database using the values provided
             return Test::create([
                 "username" => $request->username,
@@ -105,6 +110,10 @@ class testApi extends Controller
     public function update(Request $request, string $id)
     {
         $target = Test::find($id);
+        if($request->password != null) {
+            $new_psw = Hash::make($request->password);
+            $request->password = $new_psw;
+        }
         $target->update($request->all());
         return $target;
     }

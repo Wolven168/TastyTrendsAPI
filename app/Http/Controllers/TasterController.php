@@ -82,7 +82,7 @@ class TasterController extends Controller
      */
     public function show(string $id)
     {
-        //
+        return Taster::find($id);
     }
 
     /**
@@ -90,7 +90,13 @@ class TasterController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        
+        $target = Test::find($id);
+        if($request->password != null) {
+            $new_psw = Hash::make($request->password);
+            $request->password = $new_psw;
+        }
+        $target->update($request->all());
+        return $target;
     }
 
     /**
@@ -98,7 +104,7 @@ class TasterController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        Taster::find($id)->delete();
     }
 
     private function RNG($iMin, $iMax) // Random number generator

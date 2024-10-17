@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('username');
             $table->string('email');
             $table->string('password');
+            $table->string('user_type')->default('customer');
+            $table->string('store_id')->nullable();
+            $table->rememberToken("remember_Me")->nullable();
             $table->timestamps();
         });
     }

@@ -13,5 +13,8 @@ class Test extends Model
         'user_id',
         'email',
         'password',
+        'user_type',
+        'store_id',
+        'remember_me'
     ];
 }
