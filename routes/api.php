@@ -28,7 +28,12 @@ Route::delete('/items/deleteItem', [ItemController::class, 'deleteItem']);
 
 // Shop Controller
 
+
 // Ticket Controller
+Route::get('/ticket/index', [ItemController::class, 'indexAll']);
+Route::get('/ticket/userTicket/{id}', [ItemController::class, 'indexUserTickets']);
+Route::post('/ticket/create', [ItemController::class, 'store']);
+Route::put('/ticket/{id}/{status}', [ItemController::class, 'updateStatus']);
 
 Route::get('/users', function (Request $request) {
     return $request->user();

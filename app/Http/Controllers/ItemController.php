@@ -7,9 +7,14 @@ use Illuminate\Http\Request;
 class ItemController extends Controller
 {
 
-    public function indexItems()
+    public function indexAllItems()
     {
         return Item::all();
+    }
+
+    public function indexShopItems($id)
+    {
+        return Item::where('shop_id', $id);
     }
 
     public function createItem(Request $request)
