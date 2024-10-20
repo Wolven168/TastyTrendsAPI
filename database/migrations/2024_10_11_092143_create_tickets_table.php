@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
-            $table->string('ticket_id');
+            $table->longText('ticket_id');
             $table->string('shop_id');
             $table->string('buyer_id');
             $table->json('order');
