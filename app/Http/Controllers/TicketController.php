@@ -12,7 +12,7 @@ class TicketController extends Controller
      */
     public function indexAllTickets()
     {
-        return Ticket::all()
+        return Ticket::all();
     }
 
     public function indexUserTickets($buyer_id) 
@@ -39,11 +39,11 @@ class TicketController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate(
+        $request->validate([
             'buyer_id' => 'required',
             'shop_id' => 'required',
             'price' => 'required'
-        );
+        ]);
         
         $sTicket_Id = $request->buyer_id . '_Ticket_' . $this->RSG(32); // Uses a random string generator for creating a unique id
         $check = $this->check();
@@ -63,7 +63,7 @@ class TicketController extends Controller
     
     public function updateStatus($id, $status){
         $target = Ticket::where('ticket_id', $id)->first();
-        $target->update('status' => $status);
+        $target->update('status', $status);
         return $target;
     }
 
@@ -98,4 +98,5 @@ class TicketController extends Controller
             return false;
         }
     }
+
 }
