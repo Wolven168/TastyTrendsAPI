@@ -16,10 +16,12 @@ return new class extends Migration
             $table->longText('ticket_id');
             $table->string('shop_id');
             $table->string('buyer_id');
-            $table->json('order');
-            $table->int('price');
+            $table->string('item_id');
+            $table->integer('quantity')->nullable();
+            $table->double('price')->nullable();
             $table->string('status');
-            $table->int('desc')->nullable();
+            $table->string('location')->nullable();
+            $table->string('desc')->nullable();
             $table->timestamps();
         });
     }

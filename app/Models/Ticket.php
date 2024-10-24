@@ -12,9 +12,11 @@ class Ticket extends Model
         'ticket_id',
         'shop_id',
         'buyer_id',
-        'order',
+        'item_id',
+        'quantity',
         'price',
         'status',
+        'location',
         'desc'
     ];
 }
