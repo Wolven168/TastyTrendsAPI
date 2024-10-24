@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Taster;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class TasterController extends Controller
 {
@@ -12,7 +14,6 @@ class TasterController extends Controller
      */
     public function index()
     {
-        //
         return Taster::all();
     }
 
@@ -22,56 +23,62 @@ class TasterController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'username' => 'required',
-            'email' => 'required',
-            'password' => 'required',
+            'user_name' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:6',
         ]);
+
         return Taster::create($request->all());
     }
 
     public function register(Request $request) 
     {
-        $request->validate([ #Validates if the information fulfills the requirements
-            'username' => 'required',
-            'email' => 'required',
+        Log::info($request->all()); // Log the request data
+        $request->validate([
+            'user_name' => 'required',
+            'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        // Miscellaneous functions
-        $sHashed = Hash::make($request->password); # Creates a hashed version of the password
-        $sUser_id = $request->username . '_' . $this->RSG(32);
+        $sHashed = Hash::make($request->password);
+        $sUser_id = $request->user_name . '_' . $this->RSG(32);
 
-        $emailCheck = Taster::where('email', $request->email)->first(); // Checks if provided email is already in database
-        
-        if(!$test) {
-            // Creating the Test to add to the database using the values provided
-            return Taster::create([
-                "username" => $request->username,
-                "user_id" => $sUser_id, // Uses a random string generator for creating a
+        $emailCheck = Taster::where('email', $request->email)->first();
+        if (!$emailCheck) {
+            Taster::create([
+                "user_name" => $request->user_name,
+                "user_id" => $sUser_id,
                 "email" => $request->email,
                 "password" => $sHashed,
             ]);
+            return response()->json([
+                'message' => 'Registration successful',
+                'success' => true,
+            ], 200);
+        } else {
+            return response()->json(['message' => 'Email has already been taken'], 400);
         }
-        else {
-            return "Email has already been taken";
-        }
-        
     }
+
+
 
     public function login(Request $request)
     {
-        // Validate the incoming request data
         $request->validate([
-            'email' => 'required',
+            'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        $emailCheck = Taster::where('email', $request->email)->first(); // Checks for the email
+        $emailCheck = Taster::where('email', $request->email)->first();
 
-        // Check if the user exists and verify the password
-        if ($test && Hash::check($request->password, $test->password)) {
-            // Password is correct, log the user in (or generate a token)
-            return response()->json(['message' => 'Login successful'], 200);
+        if ($emailCheck && Hash::check($request->password, $emailCheck->password)) {
+            return response()->json(
+                [
+                    'message' => 'Login successful',
+                    'success' => true,
+                    'id' => $emailCheck->user_id,
+                ], 
+                200);
         }
 
         return response()->json(['message' => 'Invalid credentials'], 401);
@@ -82,7 +89,7 @@ class TasterController extends Controller
      */
     public function show(string $id)
     {
-        return Taster::find($id);
+        return Taster::where('user_id', $id);
     }
 
     /**
@@ -90,8 +97,8 @@ class TasterController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $target = Test::find($id);
-        if($request->password != null) {
+        $target = Taster::find($id);
+        if ($request->password != null) {
             $new_psw = Hash::make($request->password);
             $request->password = $new_psw;
         }
@@ -107,22 +114,22 @@ class TasterController extends Controller
         Taster::find($id)->delete();
     }
 
-    private function RNG($iMin, $iMax) // Random number generator
+    private function RNG($iMin, $iMax)
     {
-        return rand($iMin, $iMax); // Return the random number
+        return rand($iMin, $iMax);
     }
 
-    private function RSG($iMaxLength) // Random string generator
+    private function RSG($iMaxLength)
     {
-        $aSam = array_merge(range('a', 'z'), range('A', 'Z'), range('0', '9')); // Simplified array creation
+        $aSam = array_merge(range('a', 'z'), range('A', 'Z'), range('0', '9'));
         $sText = "";
         if ($iMaxLength < 5) {
-            $iMaxLength = 5; // Ensure minimum length
+            $iMaxLength = 5;
         }
-        $iLength = $this->RNG(4, $iMaxLength); // Random length between 4 and max length
+        $iLength = $this->RNG(4, $iMaxLength);
 
         for ($iTemp = 0; $iTemp < $iLength; $iTemp++) {
-            $iRNG = $this->RNG(0, count($aSam) - 1); // Get a valid index for the array
+            $iRNG = $this->RNG(0, count($aSam) - 1);
             $sText .= $aSam[$iRNG];
         }
         return $sText;
