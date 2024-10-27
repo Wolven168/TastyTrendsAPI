@@ -14,11 +14,14 @@ return new class extends Migration
         Schema::create('tasters', function (Blueprint $table) {
             $table->id();
             $table->string('user_id');
-            $table->string('username');
+            $table->string('user_name');
             $table->string('email');
             $table->string('password');
             $table->string('user_type')->default('customer');
+            $table->longText('user_image')->nullable();
             $table->string('store_id')->nullable();
+            $table->string('phone_num')->nullable();
+            $table->string('student_num')->nullable();
             $table->rememberToken("remember_Me")->nullable();
             $table->timestamps();
         });

@@ -2,52 +2,140 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Item;
 use Illuminate\Http\Request;
 
 class ItemController extends Controller
 {
 
-    public function indexItems()
+    public function indexAllItems()
     {
         return Item::all();
+    }
+
+    public function indexShopItems($shop_id)
+    {
+        $items = Item::where('shop_id', $shop_id)->get();
+        return response()->json([
+            "items" => $items,
+            'message' => 'Items found',
+            'success' => true,
+        ], 200);
     }
 
     public function createItem(Request $request)
     {
         $request->validate([
             "shop_id" => 'required',
-            "item_id" => 'required',
-            "item_name" => 'required',
+            "item_name" => 'sometimes|string',
             "item_price" => 'required',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+            "item_image" => 'sometimes',
         ]);
         $sItem_id = $request->item_name . '_' . $this->RSG(32); // Uses a random string generator for creating a unique id
-        return Item::create([
+        Item::create([
             "shop_id" => $request->shop_id,
-            "item_id" => $sItem_id, 
+            'item_id' => $sItem_id,
             "item_name" => $request->item_name,
             "item_price" => $request->item_price,
             "item_image" =>  $request->item_image,
-            "item_desc" => $request->item_desc,
+            "available" => false,
         ]);
+        return response()->json([
+            'message' => 'Item created',
+            'success' => true,
+        ], 200);
     }
 
-    public function updateItem(Request $request, string $id)
+    public function updateItem(Request $request, string $item_id)
     {
-        $target = Item::find($id);
-        $target->update($request->all());
-        return $target;
-    }
-    
+        // Validate incoming request
+        $request->validate([
+            'item_name' => 'sometimes|string',
+            'item_price' => 'sometimes|numeric',
+            'item_image' => 'sometimes|nullable|string',
+        ]);
 
-    public function showItem(String $id) // Retrieves data
-    {
-        return Item::find($id);
+        // Find the target Item
+        $target = Item::where('item_id', $item_id);
+        if ($target != null) {
+            return response()->json(['message' => 'Item not found', 'success' => false], 404);
+        }
+
+        // Only update fields that are present in the request
+        $target->fill($request->only(['item_name', 'item_price', 'item_image']));
+        $target->save(); // Save the updated model
+
+        return response()->json([
+            'message' => 'Item updated',
+            'success' => true,
+        ], 200);
     }
 
-    public function deleteItem(string $id)
+    public function updateItemAvailability(String $item_id, Request $request) {
+        // Validate incoming request
+        $request->validate([
+            'available' => 'sometimes|boolean',
+        ]);
+        $target = Item::where('item_id', $item_id)->first();
+        if ($target) {
+            $target->fill(['available' => $request->available]); // Correctly update status
+            $target->save();
+            return response()->json(['message' => 'Ticket Updated', 'success' => true], 201);
+        }
+        return response()->json(['message' => 'Ticket not found', 'success' => false, ], 404);
+    }
+
+    public function showItem(String $item_id) // Retrieves data
     {
-        Item::find($id)->delete();
+        try {
+            $item = Item::where('item_id', $item_id)->get();
+            return response()->json([
+                'message' => 'Item found',
+                'success' => true,
+                'item' => $item,
+            ], 200);
+        }
+        catch (Exception $e){
+            return response()->json([
+                'message' => 'Item not found',
+                'success' => false,
+            ], 404);
+        }
+    }
+
+    public function showItemTicket(String $item_id) {
+        try {
+            $item = Item::where('item_id', $item_id)->get();
+            return response()->json([
+                'message' => 'Item found',
+                'success' => true,
+                'item_name' => $item->item_name,
+                'item_image' => $item->item_image,
+            ], 200);
+        }
+        catch (Exception $e){
+            return response()->json([
+                'message' => 'Item not found',
+                'success' => false,
+            ], 404);
+        }
+    }
+
+    public function deleteItem(string $item_id)
+    {
+        try {
+            $deleted = Item::where('item_id', $item_id)->delete();
+            return response()->json([
+                'message' => 'Item deleted',
+                'success' => true,
+            ], 200);
+        }
+        catch (Exception $e){
+            return response()->json([
+                'message' => 'Item not found',
+                'success' => false,
+            ], 404);
+        }
     }
 
     private function RNG($iMin, $iMax) // Random number generator

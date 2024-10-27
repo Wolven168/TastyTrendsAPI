@@ -13,13 +13,19 @@ return new class extends Migration
     {
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
-            $table->string('ticket_id');
+            $table->longText('ticket_id');
             $table->string('shop_id');
+            $table->string('shop_name');
             $table->string('buyer_id');
-            $table->json('order');
-            $table->int('price');
+            $table->string('buyer_name');
+            $table->string('item_id');
+            $table->string('item_name');
+            $table->longText('item_image');
+            $table->integer('quantity')->nullable();
+            $table->double('price')->nullable();
             $table->string('status');
-            $table->int('desc')->nullable();
+            $table->string('location')->nullable();
+            $table->string('desc')->nullable();
             $table->timestamps();
         });
     }

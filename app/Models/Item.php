@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Item extends Model
 {
     protected $fillable = [
-        'shop_id',
         'item_id',
+        'shop_id',
         'item_name',
         'item_price',
         'item_image',

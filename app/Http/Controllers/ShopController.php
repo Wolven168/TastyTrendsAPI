@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Shop;
+use App\Models\Taster; // Ensure this is imported if you're using it
 use Illuminate\Http\Request;
+use Exception;
 
 class ShopController extends Controller
 {
@@ -12,15 +14,11 @@ class ShopController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $shops = Shop::all();
+        return response()->json([
+            'shops' => $shops,
+            'success' => true,
+        ], 200);
     }
 
     /**
@@ -28,38 +26,98 @@ class ShopController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            "shop_owner_id" => 'required',
+            "shop_name" => 'required|string',
+            "shop_image" => 'sometimes|string',
+        ]);
+        
+        $sShop_id = $request->shop_name . '_' . $this->RSG(32);
+        
+        // Create shop
+        Shop::create([
+            'shop_id' => $sShop_id,
+            "shop_owner_id" => $request->shop_owner_id,
+            "shop_name" => $request->shop_name,
+            "shop_image" => $request->shop_image,
+        ]);
+
+        // Update user shop_id
+        $user = Taster::where("user_id", $request->shop_owner_id)->first();
+        if ($user) {
+            $user->update(["shop_id" => $sShop_id]);
+        }
+
+        return response()->json([
+            'message' => 'Shop created',
+            'success' => true,
+        ], 201); // 201 for resource created
     }
 
     /**
-     * Display the specified resource.
+     * Show shop ticket data by shop_id.
      */
-    public function show(Shop $shop)
+    public function ShopTicketData(String $shop_id)
     {
-        //
-    }
+        $shop = Shop::where('shop_id', $shop_id)->first();
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Shop $shop)
-    {
-        //
-    }
+        if ($shop) {
+            return response()->json([
+                'message' => 'Shop found',
+                'success' => true,
+                'shop_name' => $shop->shop_name,
+            ], 200);
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Shop $shop)
-    {
-        //
+        return response()->json([
+            'message' => 'Shop not found',
+            'success' => false,
+        ], 404);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Shop $shop)
+    public function destroy(String $shop_id)
     {
-        //
+        try {
+            $deleted = Shop::where('shop_id', $shop_id)->delete();
+            if ($deleted) {
+                return response()->json([
+                    'message' => 'Shop deleted',
+                    'success' => true,
+                ], 200); // Success
+            }
+            return response()->json([
+                'message' => 'Shop not found',
+                'success' => false,
+            ], 404);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Error: ' . $e->getMessage(),
+                'success' => false,
+            ], 500); // Internal server error
+        }
+    }
+
+    private function RNG($iMin, $iMax)
+    {
+        return rand($iMin, $iMax);
+    }
+
+    private function RSG($iMaxLength)
+    {
+        $aSam = array_merge(range('a', 'z'), range('A', 'Z'), range('0', '9'));
+        $sText = "";
+        if ($iMaxLength < 5) {
+            $iMaxLength = 5;
+        }
+        $iLength = $this->RNG(4, $iMaxLength);
+
+        for ($iTemp = 0; $iTemp < $iLength; $iTemp++) {
+            $iRNG = $this->RNG(0, count($aSam) - 1);
+            $sText .= $aSam[$iRNG];
+        }
+        return $sText;
     }
 }
