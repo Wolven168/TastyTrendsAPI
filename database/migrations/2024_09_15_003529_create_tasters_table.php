@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('user_type')->default('customer');
             $table->string('user_img')->nullable();
             $table->string('store_id')->nullable();
+            $table->string('phone_num')->nullable();
+            $table->string('student_num')->nullable();
             $table->rememberToken("remember_Me")->nullable();
             $table->timestamps();
         });

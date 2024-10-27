@@ -76,7 +76,10 @@ class TasterController extends Controller
                 [
                     'message' => 'Login successful',
                     'success' => true,
-                    'id' => $emailCheck->user_id,
+                    'user_id' => $emailCheck->user_id,
+                    'user_name' => $emailCheck->user_name,
+                    'user_image' => $emailCheck->user_image,
+                    'shop_id' => $emailCheck->shop_id,
                 ], 
                 200);
         }
@@ -87,31 +90,91 @@ class TasterController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $user_id)
     {
-        return Taster::where('user_id', $id);
+        return Taster::where('user_id', $user_id);
     }
+
+    public function getUserName(String $user_id)
+    {
+        $user = Taster::where('user_id', $user_id);
+        if($user) {
+            return response()->json([
+                'message' => 'User found',
+                'success' => true,
+                'user_name' => $user->user_name,
+            ], 401);
+        }
+        else {
+            return response()->json(['errorMessage' => 'User not found', 'success' => false,], 401);
+        }
+    }
+
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $user_id)
     {
-        $target = Taster::find($id);
-        if ($request->password != null) {
-            $new_psw = Hash::make($request->password);
-            $request->password = $new_psw;
+        // Validate incoming request
+        $request->validate([
+            'user_name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|email|max:255|unique:tasters,email,' . $user_id,
+            'password' => 'sometimes|nullable|string|min:8',
+            'shop_id' => 'sometimes|required|string|max:255',
+            'user_image' => 'sometimes|required|string|max:255',
+            'phone_num' => 'sometimes|required|string|max:255',
+            'student_num' => 'sometimes|required|string|max:255',
+        ]);
+
+        // Find the target Taster
+        $target = Taster::where('user_id', $user_id)->first();
+        if (!$target) {
+            return response()->json(['message' => 'User not found', 'success' => false], 404);
         }
-        $target->update($request->all());
-        return $target;
+
+        // Update password if provided
+        if ($request->filled('password')) {
+            $target->password = Hash::make($request->password);
+        }
+
+        // Only update fields that are present in the request
+        $target->fill($request->only([
+            'user_name', 
+            'user_email', 
+            'store_id',
+            'user_image',
+            'phone_num',
+            'student_num',
+        ])); // Exclude password if already hashed
+        $target->save(); // Save the updated model
+
+        return response()->json([
+            'message' => 'User updated',
+            'success' => true,
+        ], 200);
     }
+
+
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(String $user_id)
     {
-        Taster::find($id)->delete();
+        try {
+            $deleted = Taster::find($id)->delete();
+            return response()->json([
+                'message' => 'User deleted',
+                'success' => true,
+            ], 200);
+        }
+        catch (Exception $e){
+            return response()->json([
+                'message' => 'User not found',
+                'success' => false,
+            ], 404);
+        }
     }
 
     private function RNG($iMin, $iMax)
