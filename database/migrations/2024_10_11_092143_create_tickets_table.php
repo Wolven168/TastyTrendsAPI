@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('buyer_name');
             $table->string('item_id');
             $table->string('item_name');
-            $table->string('item_image');
+            $table->longText('item_image');
             $table->integer('quantity')->nullable();
             $table->double('price')->nullable();
             $table->string('status');

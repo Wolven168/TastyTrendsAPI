@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('shop_id');
             $table->string('item_name');
             $table->double('item_price');
-            $table->string('item_image')->nullable();
+            $table->longText('item_image')->nullable();
             $table->boolean('available'); // Change 'true' to true
             $table->longText('item_desc')->nullable();
             $table->timestamps();
