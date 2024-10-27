@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Item;
 use Illuminate\Http\Request;
 
 class ItemController extends Controller
@@ -31,8 +32,9 @@ class ItemController extends Controller
             "item_image" => 'sometimes',
         ]);
         $sItem_id = $request->item_name . '_' . $this->RSG(32); // Uses a random string generator for creating a unique id
-        $ticket = Item::create([
+        Item::create([
             "shop_id" => $request->shop_id,
+            'item_id' => $sItem_id,
             "item_name" => $request->item_name,
             "item_price" => $request->item_price,
             "item_image" =>  $request->item_image,
