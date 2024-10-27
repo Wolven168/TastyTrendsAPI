@@ -84,7 +84,10 @@ class TasterController extends Controller
                 200);
         }
 
-        return response()->json(['message' => 'Invalid credentials'], 401);
+        return response()->json([
+            'message' => 'Invalid credentials',
+            'success' => false
+        ], 401);
     }
 
     /**
@@ -163,7 +166,7 @@ class TasterController extends Controller
     public function destroy(String $user_id)
     {
         try {
-            $deleted = Taster::find($id)->delete();
+            $deleted = Taster::where('user_id', $user_id)->delete();
             return response()->json([
                 'message' => 'User deleted',
                 'success' => true,

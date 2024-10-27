@@ -54,8 +54,8 @@ class ItemController extends Controller
         ]);
 
         // Find the target Item
-        $target = Item::find($item_id);
-        if (!$target) {
+        $target = Item::where('item_id', $item_id);
+        if ($target != null) {
             return response()->json(['message' => 'Item not found', 'success' => false], 404);
         }
 
@@ -86,7 +86,7 @@ class ItemController extends Controller
     public function showItem(String $item_id) // Retrieves data
     {
         try {
-            $item = Item::find($item_id)->get();
+            $item = Item::where('item_id', $item_id)->get();
             return response()->json([
                 'message' => 'Item found',
                 'success' => true,
@@ -103,7 +103,7 @@ class ItemController extends Controller
 
     public function showItemTicket(String $item_id) {
         try {
-            $item = Item::find($item_id)->get();
+            $item = Item::where('item_id', $item_id)->get();
             return response()->json([
                 'message' => 'Item found',
                 'success' => true,
@@ -122,7 +122,7 @@ class ItemController extends Controller
     public function deleteItem(string $item_id)
     {
         try {
-            $deleted = Item::find($item_id)->delete();
+            $deleted = Item::where('item_id', $item_id)->delete();
             return response()->json([
                 'message' => 'Item deleted',
                 'success' => true,

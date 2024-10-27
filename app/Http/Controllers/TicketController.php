@@ -68,7 +68,7 @@ class TicketController extends Controller
     {
         // Method to show form is not implemented
         try {
-            $deleted = Ticket::find($ticket_id)->delete();
+            $deleted = Ticket::where('ticket_id', $ticket_id)->delete();
             return response()->json([
                 'message' => 'Ticket deleted',
                 'success' => true,
