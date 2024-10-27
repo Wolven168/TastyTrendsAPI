@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ticket;
+use App\Models\Item;
+use App\Models\Taster;
+use App\Models\Shop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -21,29 +24,63 @@ class TicketController extends Controller
      * Display tickets for a specific buyer.
      */
     public function indexUserTickets($buyer_id) 
-    {
-        return Ticket::where('buyer_id', $buyer_id)->get(); // Added ->get() to retrieve results
+{
+    $tickets = Ticket::where('buyer_id', $buyer_id)->get();
+
+    // Check if the tickets collection is not empty
+    if ($tickets->isNotEmpty()) {
+        return response()->json([
+            'message' => 'Tickets successfully retrieved',
+            'success' => true,
+            'tickets' => $tickets,
+        ], 200);
+    } else {
+        return response()->json(['message' => 'Tickets not found', 'success' => false], 404);
     }
+}
+
 
     /**
      * Display a specific shop's ticket.
      */
-    public function indexShopTickets($id)
+    public function indexShopTickets($shop_id)
     {
-        $ticket = Ticket::find($id);
-        if ($ticket) {
-            return response()->json($ticket);
-        }
-        return response()->json(['message' => 'Ticket not found'], 404);
+        $tickets = Ticket::where('shop_id', $shop_id)->get();
+
+    // Check if the tickets collection is not empty
+    if ($tickets->isNotEmpty()) {
+        return response()->json([
+            'message' => 'Tickets successfully retrieved',
+            'success' => true,
+            'tickets' => $tickets,
+        ], 200);
+    } else {
+        return response()->json(['message' => 'Tickets not found', 'success' => false], 404);
+    }
+        
     }
 
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function deleteTicket(String $ticket_id)
     {
         // Method to show form is not implemented
+        try {
+            $deleted = Ticket::find($ticket_id)->delete();
+            return response()->json([
+                'message' => 'Ticket deleted',
+                'success' => true,
+            ], 200);
+        }
+        catch (Exception $e){
+            return response()->json([
+                'message' => 'Ticket not found',
+                'success' => false,
+            ], 404);
+        }
+        
     }
 
     /**
@@ -70,23 +107,38 @@ class TicketController extends Controller
             $sTicket_Id = $request->buyer_id . '_Ticket_' . $this->RSG(32);
         }
 
+        // Retrieve the shop, item, and user
+        $shop = Shop::where('shop_id', $request->shop_id)->first();
+        $item = Item::where('item_id', $request->item_id)->first();
+        $user = Taster::where('user_id', $request->buyer_id)->first();
+
+        // Initialize variables for ticket creation
+        $shopName = $shop ? $shop->shop_name : "Shop not in database";
+        $itemName = $item ? $item->item_name : "Item not in database";
+        $itemImage = $item ? $item->item_image : "Item not in database";
+        $buyerName = $user ? $user->user_name : "User not in database";
+
         try {
-            DB::transaction(function () use ($request, $sTicket_Id) {
+            DB::transaction(function () use ($request, $sTicket_Id, $buyerName, $shopName, $itemName, $itemImage) {
                 Ticket::create([
                     'ticket_id' => $sTicket_Id,
                     'buyer_id' => $request->buyer_id,
+                    'buyer_name' => $buyerName,
                     'shop_id' => $request->shop_id,
+                    'shop_name' => $shopName,
                     'item_id' => $request->item_id,
+                    'item_name' => $itemName,
+                    'item_image' => $itemImage,
                     'quantity' => $request->quantity,
                     'price' => (float)$request->price,
-                    'status' => 'To Be Accepted',
+                    'status' => 'Pending',
                     'location' => $request->location,
                 ]);
             });
-            
+
             // Successful response
             return response()->json(['message' => 'Ticket Sent', 'success' => true], 201);
-            
+
         } catch (Exception $e) {
             // Error response
             $errorResponse = response()->json([
@@ -102,18 +154,21 @@ class TicketController extends Controller
         }
     }
 
+
     /**
      * Update the status of a ticket.
      */
-    public function updateStatus($id, $status)
+    public function updateStatus($ticket_id, $status)
     {
-        $target = Ticket::where('ticket_id', $id)->first();
+        $target = Ticket::where('ticket_id', $ticket_id)->first();
         if ($target) {
             $target->update(['status' => $status]); // Correctly update status
-            return $target;
+            return response()->json(['message' => 'Ticket Updated', 'success' => true], 201);
         }
-        return response()->json(['message' => 'Ticket not found'], 404);
+        return response()->json(['message' => 'Ticket not found', 'success' => false, ], 404);
     }
+
+    // Personal Functions
 
     private function RNG($iMin, $iMax) // Random number generator
     {

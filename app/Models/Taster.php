@@ -15,7 +15,9 @@ class Taster extends Model
         'password',
         'user_type',
         'store_id',
-        'user_img',
+        'user_image',
+        'phone_num',
+        'student_num',
         'remember_me'
     ];
 }

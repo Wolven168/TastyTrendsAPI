@@ -15,8 +15,12 @@ return new class extends Migration
             $table->id();
             $table->longText('ticket_id');
             $table->string('shop_id');
+            $table->string('shop_name');
             $table->string('buyer_id');
+            $table->string('buyer_name');
             $table->string('item_id');
+            $table->string('item_name');
+            $table->string('item_image');
             $table->integer('quantity')->nullable();
             $table->double('price')->nullable();
             $table->string('status');

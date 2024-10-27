@@ -12,6 +12,7 @@ class Shop extends Model
         'shop_id',
         'shop_name',
         'shop_owner_id',
+        'shop_image',
         'expenses',
         'sales',
     ];
