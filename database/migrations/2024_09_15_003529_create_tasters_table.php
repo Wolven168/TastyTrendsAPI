@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('email');
             $table->string('password');
             $table->string('user_type')->default('customer');
-            $table->string('user_img')->nullable();
+            $table->longText('user_image')->nullable();
             $table->string('store_id')->nullable();
             $table->string('phone_num')->nullable();
             $table->string('student_num')->nullable();

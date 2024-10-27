@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('shop_id');
             $table->string('shop_name');
             $table->string('shop_owner_id');
+            $table->longText('shop_image')->nullable();
             $table->json('expenses')->nullable();
             $table->json('sales')->nullable();
             $table->timestamps();
