@@ -39,7 +39,7 @@ Route::prefix('items')->group(function () {
     Route::post('/create', [ItemController::class, 'createItem']);
     Route::get('/show/{item_id}', [ItemController::class, 'showItem']);
     Route::get('/show/TicketData/{item_id}', [ItemController::class, 'showItemTicket']);
-    Route::put('/update/{item_id}', [ItemController::class, 'updateItem']);-
+    Route::put('/update/{item_id}', [ItemController::class, 'updateItem']);
     Route::delete('/delete/{item_id}', [ItemController::class, 'deleteItem']);
 });
 
