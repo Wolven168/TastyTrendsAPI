@@ -46,6 +46,7 @@ class ShopController extends Controller
         $user = Taster::where("user_id", $request->shop_owner_id)->first();
         if ($user) {
             $user->update(["shop_id" => $sShop_id]);
+            $user->update(['user_type' => 'Owner']);
         }
 
         return response()->json([
@@ -66,6 +67,27 @@ class ShopController extends Controller
                 'message' => 'Shop found',
                 'success' => true,
                 'shop_name' => $shop->shop_name,
+            ], 200);
+        }
+
+        return response()->json([
+            'message' => 'Shop not found',
+            'success' => false,
+        ], 404);
+    }
+
+    public function getShopDetails(String $shop_id)
+    {
+        $shop = Shop::where('shop_id', $shop_id)->first();
+        $user = Taster::where('shop_id', $shop_id)->where('user_type', 'Owner');
+        
+        if ($shop) {
+            return response()->json([
+                'message' => 'Shop found',
+                'success' => true,
+                'shop_name' => $shop->shop_name,
+                'shop_email' => $user->email,
+                'shop_image' => $shop->shop_image,
             ], 200);
         }
 
