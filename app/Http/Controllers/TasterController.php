@@ -6,82 +6,130 @@ use Illuminate\Http\Request;
 use App\Models\Taster;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\JsonResponse;
 
 class TasterController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        return Taster::all();
+        return response()->json(Taster::all(), 200);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        $request->validate([
-            'user_name' => 'required',
-            'email' => 'required|email',
-            'password' => 'required|min:6',
+        // Use the private validation method
+        $this->validateTaster($request);
+
+        $taster = Taster::create([
+            'user_name' => $request->user_name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
         ]);
 
-        return Taster::create($request->all());
+        return response()->json([
+            'message' => 'Taster registered successfully.',
+            'taster' => $taster,
+        ], 201);
     }
 
-    public function register(Request $request) 
+    public function addFavorite(Request $request, string $user_id): JsonResponse
     {
-        Log::info($request->all()); // Log the request data
+        $user = Taster::where('user_id', $user_id)->first();
+
+        if ($user) {
+            // Assuming $request->favorites contains the updated favorites
+            $user->favorites = $request->favorites;
+            $user->save();
+            return response()->json([
+                'message' => 'Favorites updated',
+                'success' => true,
+            ], 200);
+        }
+
+        return response()->json(['errorMessage' => 'User not found', 'success' => false], 404);
+    }
+
+    public function register(Request $request)
+    {
+        Log::info('Registration request data:', $request->all());
+
+        // Validate request
         $request->validate([
-            'user_name' => 'required',
-            'email' => 'required|email',
-            'password' => 'required',
+            'user_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:tasters,email', // Ensure email is unique
+            'password' => 'required|string|min:6',
         ]);
 
-        $sHashed = Hash::make($request->password);
+        // Generate a unique user_id
         $sUser_id = $request->user_name . '_' . $this->RSG(32);
+        $hashedPassword = Hash::make($request->password);
 
-        $emailCheck = Taster::where('email', $request->email)->first();
-        if (!$emailCheck) {
-            Taster::create([
+        try {
+            // Create new Taster
+            $taster = Taster::create([
                 "user_name" => $request->user_name,
                 "user_id" => $sUser_id,
                 "email" => $request->email,
-                "password" => $sHashed,
+                "password" => $hashedPassword,
             ]);
+
+            // Generate the JWT token
+            $token = Auth::guard('api')->login($taster);
+
+            Log::info('New Taster created:', $taster->toArray());
+
             return response()->json([
                 'message' => 'Registration successful',
                 'success' => true,
-            ], 200);
-        } else {
-            return response()->json(['message' => 'Email has already been taken'], 400);
+                'token' => $token,
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('Error creating Taster:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'message' => 'Registration failed',
+                'error' => 'An error occurred while creating the account.'
+            ], 500);
         }
     }
 
 
-
-    public function login(Request $request)
+    public function login(Request $request): JsonResponse
     {
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required',
+            'password' => 'required|string',
         ]);
 
-        $emailCheck = Taster::where('email', $request->email)->first();
+        // Attempt to log the user in
+        $user = Taster::where('email', $request->email)->first();
+        if ($user && Hash::check($request->password, $user->password)) {
+            // Generate the JWT token
+            $token = Auth::guard('api')->login($user);
 
-        if ($emailCheck && Hash::check($request->password, $emailCheck->password)) {
-            return response()->json(
-                [
-                    'message' => 'Login successful',
-                    'success' => true,
-                    'user_id' => $emailCheck->user_id,
-                    'user_name' => $emailCheck->user_name,
-                    'user_image' => $emailCheck->user_image,
-                    'shop_id' => $emailCheck->shop_id,
-                ], 
-                200);
+            // Construct userDetails as an associative array
+            $userDetails = [
+                'user_id' => $user->user_id,
+                'user_name' => $user->user_name,
+                'user_email' => $user->email,
+                'user_image' => $user->user_image,
+                'shop_id' => $user->store_id, // Assuming you meant store_id instead of shop_id
+                'user_type' => $user->user_type,
+                'favorites' => $user->favorites,
+            ];
+
+            return response()->json([
+                'message' => 'Login successful',
+                'success' => true,
+                'userDetails' => $userDetails,
+                'token' => $token,
+            ], 200);
         }
 
         return response()->json([
@@ -90,67 +138,46 @@ class TasterController extends Controller
         ], 401);
     }
 
+
     /**
      * Display the specified resource.
      */
-    public function show(string $user_id)
+    public function show(string $user_id): JsonResponse
     {
-        return Taster::where('user_id', $user_id);
-    }
-
-    public function getUserName(String $user_id)
-    {
-        $user = Taster::where('user_id', $user_id);
-        if($user) {
-            return response()->json([
-                'message' => 'User found',
-                'success' => true,
-                'user_name' => $user->user_name,
-            ], 401);
+        $user = $this->findTasterById($user_id);
+        if ($user) {
+            return response()->json($user, 200);
         }
-        else {
-            return response()->json(['errorMessage' => 'User not found', 'success' => false,], 401);
-        }
-    }
 
+        return response()->json(['message' => 'User not found'], 404);
+    }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $user_id)
+    public function update(Request $request, string $user_id): JsonResponse
     {
         // Validate incoming request
         $request->validate([
             'user_name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|max:255|unique:tasters,email,' . $user_id,
+            'email' => 'sometimes|required|email|unique:tasters,email,' . $user_id,
             'password' => 'sometimes|nullable|string|min:8',
-            'shop_id' => 'sometimes|required|string|max:255',
-            'user_image' => 'sometimes|required|string|max:255',
-            'phone_num' => 'sometimes|required|string|max:255',
-            'student_num' => 'sometimes|required|string|max:255',
+            'favorites' => 'sometimes|required|array',
         ]);
 
         // Find the target Taster
-        $target = Taster::where('user_id', $user_id)->first();
+        $target = $this->findTasterById($user_id);
         if (!$target) {
             return response()->json(['message' => 'User not found', 'success' => false], 404);
         }
 
-        // Update password if provided
+        // Update fields that are present in the request
         if ($request->filled('password')) {
             $target->password = Hash::make($request->password);
         }
 
-        // Only update fields that are present in the request
-        $target->fill($request->only([
-            'user_name', 
-            'user_email', 
-            'store_id',
-            'user_image',
-            'phone_num',
-            'student_num',
-        ])); // Exclude password if already hashed
-        $target->save(); // Save the updated model
+        $target->fill($request->only(['user_name', 'email', 'favorites']));
+        $target->save();
 
         return response()->json([
             'message' => 'User updated',
@@ -158,34 +185,58 @@ class TasterController extends Controller
         ], 200);
     }
 
-
-
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(String $user_id)
+    public function destroy(string $user_id): JsonResponse
     {
-        try {
-            $deleted = Taster::where('user_id', $user_id)->delete();
-            return response()->json([
-                'message' => 'User deleted',
-                'success' => true,
-            ], 200);
-        }
-        catch (Exception $e){
+        $user = $this->findTasterById($user_id);
+        
+        if (!$user) {
             return response()->json([
                 'message' => 'User not found',
                 'success' => false,
             ], 404);
         }
+
+        $user->delete();
+
+        return response()->json([
+            'message' => 'User deleted',
+            'success' => true,
+        ], 200);
     }
 
-    private function RNG($iMin, $iMax)
+    // Private method to validate Taster data
+    private function validateTaster(Request $request)
+    {
+        $request->validate([
+            'user_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:tasters,email',
+            'password' => 'required|min:6',
+        ]);
+    }
+
+    protected function validator(array $data)
+    {
+        return Validator::make($data, [
+            'user_name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:tasters'],
+            'password' => ['required', 'string', 'min:8'], // Removed 'confirmed'
+        ]);
+    }
+
+    private function findTasterById(string $user_id): ?Taster
+    {
+        return Taster::where('user_id', $user_id)->first();
+    }
+
+    private function RNG(int $iMin, int $iMax): int
     {
         return rand($iMin, $iMax);
     }
 
-    private function RSG($iMaxLength)
+    private function RSG(int $iMaxLength): string
     {
         $aSam = array_merge(range('a', 'z'), range('A', 'Z'), range('0', '9'));
         $sText = "";

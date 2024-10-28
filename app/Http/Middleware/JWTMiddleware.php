@@ -5,10 +5,10 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class JWTMiddleware
 {
-    
     /**
      * Handle an incoming request.
      *
@@ -16,28 +16,19 @@ class JWTMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $message = '';
-
         try {
             // Checks token validation
             JWTAuth::parseToken()->authenticate();
             return $next($request);
-        }
-        catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             // When token expires
-            $message = 'Token expired';
-        }
-        catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return response()->json(['success' => false, 'message' => 'Token expired'], 401);
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
             // When token is invalid
-            $message = 'Token invalid';
-        }
-        catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return response()->json(['success' => false, 'message' => 'Token invalid'], 401);
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
             // When token is not present
-            $message = 'Provide token';
+            return response()->json(['success' => false, 'message' => 'Provide token'], 401);
         }
-        return response()->json([
-            'success' => false,
-            'message' => $message
-        ]);
     }
 }

@@ -15,7 +15,7 @@ return [
 
     'defaults' => [
         'guard' => env('AUTH_GUARD', 'api'),
-        'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
+        'passwords' => env('AUTH_PASSWORD_BROKER', 'tasters'), // Change to 'tasters'
     ],
 
     /*
@@ -26,10 +26,6 @@ return [
     | Next, you may define every authentication guard for your application.
     | Of course, a great default configuration has been defined for you
     | which utilizes session storage plus the Eloquent user provider.
-    |
-    | All authentication guards have a user provider, which defines how the
-    | users are actually retrieved out of your database or other storage
-    | system used by the application. Typically, Eloquent is utilized.
     |
     | Supported: "session"
     |
@@ -42,10 +38,9 @@ return [
         ],
         'api' => [
             'driver' => 'jwt',
-            'provider' => 'users',
+            'provider' => 'tasters', // Change to 'tasters'
             'hash' => false,
         ]
-            
     ],
 
     /*
@@ -57,12 +52,6 @@ return [
     | users are actually retrieved out of your database or other storage
     | system used by the application. Typically, Eloquent is utilized.
     |
-    | If you have multiple user tables or models you may configure multiple
-    | providers to represent the model / table. These providers may then
-    | be assigned to any extra authentication guards you have defined.
-    |
-    | Supported: "database", "eloquent"
-    |
     */
 
     'providers' => [
@@ -71,10 +60,10 @@ return [
             'model' => env('AUTH_MODEL', App\Models\User::class),
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'tasters' => [ // Add this provider for tasters
+            'driver' => 'eloquent',
+            'model' => App\Models\Taster::class,
+        ],
     ],
 
     /*
@@ -86,20 +75,12 @@ return [
     | reset functionality, including the table utilized for token storage
     | and the user provider that is invoked to actually retrieve users.
     |
-    | The expiry time is the number of minutes that each reset token will be
-    | considered valid. This security feature keeps tokens short-lived so
-    | they have less time to be guessed. You may change this as needed.
-    |
-    | The throttle setting is the number of seconds a user must wait before
-    | generating more password reset tokens. This prevents the user from
-    | quickly generating a very large amount of password reset tokens.
-    |
     */
 
     'passwords' => [
-        'users' => [
-            'provider' => 'users',
-            'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+        'tasters' => [ // Create a new broker for tasters
+            'provider' => 'tasters',
+            'table' => 'password_resets', // Ensure this matches your migration
             'expire' => 60,
             'throttle' => 60,
         ],
