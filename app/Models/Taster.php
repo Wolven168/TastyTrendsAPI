@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Tymon\JWTAuth\Contracts\JWTSubject; // Import JWTSubject
 
-class Taster extends Model
+class Taster extends Authenticatable implements CanResetPasswordContract, JWTSubject // Implement JWTSubject
 {
-    use HasFactory;
+    use HasFactory, Notifiable, CanResetPassword;
+
     protected $fillable = [
         'user_name',
         'user_id',
@@ -18,6 +23,18 @@ class Taster extends Model
         'user_image',
         'phone_num',
         'student_num',
-        'remember_me'
+        'favorites',
+        'remember_me',
     ];
+
+    // Implement methods required by the JWTSubject interface
+    public function getJWTIdentifier()
+    {
+        return $this->getKey(); // Typically the ID of the user
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return []; // You can add custom claims here if needed
+    }
 }
