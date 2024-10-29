@@ -34,6 +34,7 @@ Route::prefix('tasters')->group(function () {
 // Shop Controller
 Route::prefix('shops')->group(function () {
     Route::get('/indexAllShops', [ShopController::class, 'index'])->middleware('api');
+    Route::get('/getShopDetails/{shop_id}', [ShopController::class, 'getShopDetails'])->middleware('api');
     Route::post('/create', [ShopController::class, 'store'])->middleware('api');
 });
 

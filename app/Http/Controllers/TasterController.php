@@ -119,9 +119,9 @@ class TasterController extends Controller
                 'user_name' => $user->user_name,
                 'user_email' => $user->email,
                 'user_image' => $user->user_image,
-                'shop_id' => $user->store_id, // Assuming you meant store_id instead of shop_id
+                'shop_id' => $user->shop_id, // Assuming you meant store_id instead of shop_id
                 'user_type' => $user->user_type,
-                'favorites' => $user->favorites,
+                // 'favorites' => $user->favorites,
             ];
 
             return response()->json([
