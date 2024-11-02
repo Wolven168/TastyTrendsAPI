@@ -19,7 +19,7 @@ class Taster extends Authenticatable implements CanResetPasswordContract, JWTSub
         'email',
         'password',
         'user_type',
-        'store_id',
+        'shop_id',
         'user_image',
         'phone_num',
         'student_num',

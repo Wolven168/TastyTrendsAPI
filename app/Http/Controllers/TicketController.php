@@ -43,7 +43,7 @@ class TicketController extends Controller
     /**
      * Display a specific shop's ticket.
      */
-    public function indexShopTickets($shop_id)
+    public function indexShopTickets(String $shop_id)
     {
         $tickets = Ticket::where('shop_id', $shop_id)->get();
 
@@ -158,11 +158,11 @@ class TicketController extends Controller
     /**
      * Update the status of a ticket.
      */
-    public function updateStatus($ticket_id, $status)
+    public function updateStatus(Request $request, $ticket_id)
     {
         $target = Ticket::where('ticket_id', $ticket_id)->first();
         if ($target) {
-            $target->update(['status' => $status]); // Correctly update status
+            $target->update(['status' => $request->status]); // Correctly update status
             return response()->json(['message' => 'Ticket Updated', 'success' => true], 201);
         }
         return response()->json(['message' => 'Ticket not found', 'success' => false, ], 404);

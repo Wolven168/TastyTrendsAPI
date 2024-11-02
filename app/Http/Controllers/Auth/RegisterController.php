@@ -43,9 +43,9 @@ class RegisterController extends Controller
 
         $validator = $this->validator($request->all());
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
+        // if ($validator->fails()) {
+        //     return response()->json(['errors' => $validator->errors()], 422);
+        // }
 
         try {
             // Check for existing email
@@ -57,6 +57,7 @@ class RegisterController extends Controller
 
             return response()->json([
                 'message' => 'Registration successful',
+                'success' => true,
                 'taster' => $taster
             ], 201);
         } catch (\Exception $e) {
@@ -64,6 +65,7 @@ class RegisterController extends Controller
 
             return response()->json([
                 'message' => 'Registration failed',
+                'success' => false,
                 'error' => 'An error occurred while creating the account: ' . $e->getMessage()
             ], 500);
         }

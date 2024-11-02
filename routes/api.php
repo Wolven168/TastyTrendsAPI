@@ -52,9 +52,9 @@ Route::prefix('items')->group(function () {
 Route::prefix('tickets')->group(function () {
     Route::get('/', [TicketController::class, 'indexAll'])->middleware('api');
     Route::get('/userTickets/{buyer_id}', [TicketController::class, 'indexUserTickets'])->middleware('api');
-    Route::get('/ShopTickets/{shop_id}', [TicketController::class, 'indexShopTickets'])->middleware('api');
+    Route::get('/shopTickets/{shop_id}', [TicketController::class, 'indexShopTickets'])->middleware('api');
     Route::post('/create', [TicketController::class, 'store'])->middleware('api');
-    Route::put('/{ticket_id}/{status}', [TicketController::class, 'updateStatus'])->middleware('api');
+    Route::post('/status/{ticket_id}', [TicketController::class, 'updateStatus'])->middleware('api');
     Route::delete('/delete/{ticket_id}', [TicketController::class, 'deleteTicket'])->middleware('api');
 });
 

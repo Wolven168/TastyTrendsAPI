@@ -20,7 +20,7 @@ class CreateTastersTable extends Migration
             $table->string('password');
             $table->string('user_type')->default('customer'); // Default to 'customer'
             $table->longText('user_image')->nullable();
-            $table->string('store_id')->nullable();
+            $table->string('shop_id')->nullable();
             $table->string('phone_num')->nullable();
             $table->json('favorites')->nullable();
             $table->string('student_num')->nullable();

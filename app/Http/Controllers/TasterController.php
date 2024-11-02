@@ -161,8 +161,11 @@ class TasterController extends Controller
         $request->validate([
             'user_name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email|unique:tasters,email,' . $user_id,
-            'password' => 'sometimes|nullable|string|min:8',
-            'favorites' => 'sometimes|required|array',
+            'password' => 'sometimes|required|string|min:8',
+            'user_image' => 'sometimes|nullable',
+            'student_num' => 'sometimes|nullable',
+            'phone_num' => 'sometimes|nullable',
+            'favorites' => 'sometimes|nullable|array',
         ]);
 
         // Find the target Taster
@@ -176,7 +179,14 @@ class TasterController extends Controller
             $target->password = Hash::make($request->password);
         }
 
-        $target->fill($request->only(['user_name', 'email', 'favorites']));
+        $target->fill($request->only([
+            'user_name', 
+            'email', 
+            'pasword',
+            'user_image', 
+            'student_num', 
+            'phone_num', 
+            'favorites']));
         $target->save();
 
         return response()->json([

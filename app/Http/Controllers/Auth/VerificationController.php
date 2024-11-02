@@ -11,9 +11,9 @@ class VerificationController extends Controller
      *
      * @return void
      */
-    public function __construct()
-    {
-        // No need for email verification middleware
-        $this->middleware('auth');
-    }
+    // public function __construct()
+    // {
+    //     // No need for email verification middleware
+    //     $this->middleware('auth');
+    // }
 }
